@@ -134,8 +134,7 @@ export function globeSubdivisionControl(minLevel, maxLevel, sseThreshold, maxDel
         }
 
         const sse = computeNodeSSE(context.camera, node);
-
-        return SSE_SUBDIVISION_THRESHOLD < sse;
+        return (layer.sseSubdivisionThreshold || SSE_SUBDIVISION_THRESHOLD) < sse;
     };
 }
 
