@@ -20,19 +20,24 @@ function customUrl(layer, url, tilematrix, row, col) {
 
 function preprocessDataLayer(layer) {
     layer.fx = layer.fx || 0.0;
-
     layer.options = layer.options || {};
+
+    if (!layer.format && layer.options.mimetype) {
+        // eslint-disable-next-line no-console
+        console.warn('layer.options.mimetype is deprecated, please use layer.format');
+        layer.format = layer.options.mimetype;
+    }
+    layer.format = layer.format || 'image/png';
 
     if (layer.protocol === 'wmts') {
         const options = layer.options;
         options.version = options.version || '1.0.0';
         options.tileMatrixSet = options.tileMatrixSet || 'WGS84';
-        options.mimetype = options.mimetype || 'image/png';
         options.style = options.style || 'normal';
         options.projection = options.projection || 'EPSG:3857';
         let newBaseUrl = `${layer.url}` +
             `?LAYER=${options.name}` +
-            `&FORMAT=${options.mimetype}` +
+            `&FORMAT=${layer.format}` +
             '&SERVICE=WMTS' +
             `&VERSION=${options.version}` +
             '&REQUEST=GetTile' +
@@ -128,11 +133,11 @@ function executeCommand(command) {
         'image/x-bil;bits=32': getXbilTexture,
     };
 
-    const func = supportedFormats[layer.options.mimetype];
+    const func = supportedFormats[layer.format];
     if (func) {
         return func(tile, layer, command.targetLevel);
     } else {
-        return Promise.reject(new Error(`Unsupported mimetype ${layer.options.mimetype}`));
+        return Promise.reject(new Error(`Unsupported mimetype ${layer.format}`));
     }
 }
 

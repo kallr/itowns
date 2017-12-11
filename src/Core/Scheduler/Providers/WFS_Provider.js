@@ -29,7 +29,15 @@ function preprocessDataLayer(layer) {
     if (!layer.typeName) {
         throw new Error('layer.typeName is required.');
     }
-    layer.format = layer.options.mimetype || 'json';
+    layer.options = layer.options || {};
+
+    if (!layer.format && layer.options.mimetype) {
+        // eslint-disable-next-line no-console
+        console.warn('layer.options.mimetype is deprecated, please use layer.format');
+        layer.format = layer.options.mimetype;
+    }
+    layer.format = layer.format || 'json';
+
     layer.crs = layer.projection || 'EPSG:4326';
     layer.version = layer.version || '2.0.2';
     layer.opacity = layer.opacity || 1;
