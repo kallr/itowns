@@ -3,6 +3,7 @@ import Fetcher from './Fetcher';
 import PointCloudProcessing from '../../../Process/PointCloudProcessing';
 import PotreeBinLoader from './PotreeBinLoader';
 import PotreeCinLoader from './PotreeCinLoader';
+import Picking from '../../Picking';
 
 // Create an A(xis)A(ligned)B(ounding)B(ox) for the child `childIndex` of one aabb.
 // (PotreeConverter protocol builds implicit octree hierarchy by applying the same
@@ -160,6 +161,7 @@ export default {
         layer.update = PointCloudProcessing.update;
         layer.postUpdate = PointCloudProcessing.postUpdate;
 
+        layer.pickObjectsAt = (view, mouse) => Picking.pickPointsAt(view, mouse, layer);
 
         return Fetcher.json(`${layer.url}/${layer.file}`, layer.fetchOptions).then((cloud) => {
             layer.metadata = cloud;
