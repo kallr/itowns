@@ -185,6 +185,8 @@ function getTransfoLocalToPanoMicMac(roll, pitch, heading) {
     var p = parseFloat(pitch) / 180 * Math.PI;  // Deg to Rad // axe Y
     // Kappa
     var k = parseFloat(heading) / 180 * Math.PI;  // Deg to Rad // axe Z
+    // c'est la matrice micmac transposée (surement par erreur)
+    // il l'a ecrite en row major alors que l'ecriture interne est en column major
     var M4 = new THREE.Matrix4();
     M4.elements[0] = Math.cos(p) * Math.cos(k);
     M4.elements[1] = Math.cos(p) * Math.sin(k);

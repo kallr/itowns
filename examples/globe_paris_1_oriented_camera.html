@@ -47,7 +47,7 @@
             var renderer;
             var exports = {};
         </script>
-        <script src="globe_li3ds_1_oriented_camera.js"></script>
+        <script src="globe_paris_1_oriented_camera.js"></script>
         <script type="text/javascript">
             /* global itowns, document, GuiTools, globeView, promises */
             var menuGlobe = new GuiTools('menuDiv');
@@ -71,37 +71,7 @@
                         }
                     }
                 });
-                var orientedImageGUI = menuGlobe.gui.addFolder('Oriented Image');
-                orientedImageGUI.add({ camToScene: false }, 'camToScene').onChange(function switchMode(value) {
-                    globeView.controls.setCameraTargetPosition(layer.axis.position);
-                    globeView.notifyChange(true);
-                });
-                orientedImageGUI.add({ cameraToImage: false }, 'cameraToImage').onChange(function switchMode(value) {
-                    globeView.camera.camera3D.position.copy(layer.axis.position);
-                    globeView.notifyChange(true);
-                });
-                orientedImageGUI.add(layer, 'cameraFOV', 0, 120).name('Camera FOV').onChange( function opacityChange(value) {
-                    globeView.camera.camera3D.fov = value;
-                    globeView.camera.camera3D.updateProjectionMatrix();
-                    globeView.notifyChange(true);
-                });
-                orientedImageGUI.add(layer, 'focaleReel', 0, 12).name('Image Distance').onChange( function opacityChange(value) {
-                    layer.focaleReel = value;
-                    updatePlanePositionAndScale();
-                    globeView.notifyChange(true);
-                });
-                orientedImageGUI.add(layer, 'opacity', 0, 1).name('Opacity').onChange( function opacityChange(value) {
-                    layer.plane.material.opacity = value;
-                    globeView.notifyChange(true);
-                });
-                orientedImageGUI.add(layer, 'convergence', -5, 5).name('Convergence').onChange( function convergenceChange(value) {
-                    layer.convergence = value;
-                    updateAxisOrientation();
-                    globeView.notifyChange(true);
-                });
-            
-            });         
-
+            });
             const d = new debug.Debug(globeView, menuGlobe.gui);
             debug.createTileDebugUI(menuGlobe.gui, globeView, globeView.wgs84TileLayer, d);
         </script>
