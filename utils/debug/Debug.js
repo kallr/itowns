@@ -43,7 +43,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
     const state = {
         displayCharts: false,
         eventsDebug: false,
-        debugCameraWindow: true,
+        debugCameraWindow: false,
         freeze: false,
     };
 
@@ -60,16 +60,9 @@ function Debug(view, datDebugTool, chartDivContainer) {
         view.notifyChange(true);
     });
 
-
-    let update = tileLayer.update;
     gui.add(state, 'freeze').name('freeze update').onChange((newValue) => {
-        if (newValue) {
-            update = tileLayer.update;
-            tileLayer.update = () => {};
-        } else {
-            tileLayer.update = update;
-            view.notifyChange(true);
-        }
+        tileLayer.frozen = newValue;
+        view.notifyChange(true);
     });
 
     gui.add(state, 'eventsDebug').name('Debug event').onChange((() => {
