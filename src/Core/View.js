@@ -1,13 +1,12 @@
 /* global window, requestAnimationFrame */
 import { Scene, EventDispatcher, Vector2 } from 'three';
 import Camera from '../Renderer/Camera';
-import MainLoop, { MAIN_LOOP_EVENTS } from './MainLoop';
+import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop';
 import c3DEngine from '../Renderer/c3DEngine';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy';
 import { GeometryLayer, Layer, defineLayerProperty } from './Layer/Layer';
 import Scheduler from './Scheduler/Scheduler';
-import LoadingScreenCSS from '../utils/LoadingScreen.css';
-import LoadingScreenHTML from '../utils/LoadingScreen.html';
+import LoadingScreen from '../utils/LoadingScreen';
 
 export const VIEW_EVENTS = {
     INITIALIZED: 'view-initialized',
@@ -86,44 +85,14 @@ function View(crs, viewerDiv, options = {}) {
 
     if (__DEBUG__) {
         this.isDebugMode = true;
+        // Disable loading screen by default in dev build
+        if (options.loadingScreen === undefined) {
+            options.loadingScreen = false;
+        }
     }
 
     if (options.loadingScreen !== false) {
-        let loadingScreenContainer;
-        let styleNode;
-        if (!options.loadingScreen || options.loadingScreen === 'itowns') {
-            styleNode = document.createElement('style');
-            styleNode.innerHTML = LoadingScreenCSS;
-            document.body.appendChild(styleNode);
-            // loading screen
-            viewerDiv.insertAdjacentHTML('beforeend', LoadingScreenHTML);
-            loadingScreenContainer = document.getElementById('itowns-loader');
-        } else if (typeof (options.loadingScreen) === 'string') {
-            loadingScreenContainer = document.getElementById(options.loadingScreen);
-        } else if (options.loadingScreen instanceof (Element)) {
-            loadingScreenContainer = options.loadingScreen;
-        } else {
-            throw new Error('Invalid value for options.loadingScreen. Expected: false, string or HTMLElement');
-        }
-
-        // auto-hide in 3 sec or if view is loaded
-        const hideLoader = () => {
-            if (!loadingScreenContainer) {
-                return;
-            }
-            loadingScreenContainer.style.opacity = 0;
-            loadingScreenContainer.style.pointerEvents = 'none';
-            loadingScreenContainer.style.transition = 'opacity 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53)';
-
-            loadingScreenContainer.addEventListener('transitionend', (e) => {
-                document.body.removeChild(styleNode);
-                viewerDiv.removeChild(e.target);
-            });
-            loadingScreenContainer = null;
-            this.mainLoop.removeEventListener(hideLoader);
-        };
-        this.addEventListener(VIEW_EVENTS.INITIALIZED, hideLoader);
-        setTimeout(hideLoader, 3000);
+        LoadingScreen.init(viewerDiv, this, options);
     }
 }
 
@@ -372,7 +341,8 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
 
         if (!this._readyCallback) {
             this._readyCallback = () => {
-                if (this.mainLoop.scheduler.commandsWaitingExecutionCount() == 0) {
+                if (this.mainLoop.scheduler.commandsWaitingExecutionCount() == 0 &&
+                    this.mainLoop.renderingState == RENDERING_PAUSED) {
                     this.dispatchEvent({ type: VIEW_EVENTS.INITIALIZED });
                     this.removeFrameRequester(MAIN_LOOP_EVENTS.AFTER_RENDER, this._readyCallback);
                     this._readyCallback = null;
