@@ -1,4 +1,4 @@
-import { CameraHelper } from 'three';
+import { CameraHelper, Color } from 'three';
 import Coordinates from '../../src/Core/Geographic/Coordinates';
 import ThreeStatsChart from './charts/ThreeStatsChart';
 import { MAIN_LOOP_EVENTS } from '../../src/Core/MainLoop';
@@ -126,8 +126,8 @@ function Debug(view, datDebugTool, chartDivContainer) {
         }
     }
 
-    view.render = function render() {
-        g.renderView(view);
+    const bClearColor = new Color();
+    function renderCameraDebug() {
         if (state.debugCameraWindow && debugCamera) {
             const size = { x: g.width * 0.2, y: g.height * 0.2 };
             debugCamera.aspect = size.x / size.y;
@@ -162,9 +162,16 @@ function Debug(view, datDebugTool, chartDivContainer) {
             }
             helper.visible = true;
             helper.updateMatrixWorld(true);
-            r.setViewport(g.width - size.x, 0, size.x, size.y);
+            bClearColor.copy(r.getClearColor());
+            r.setViewport(g.width - size.x, g.height - size.y, size.x, size.y);
+            r.setScissor(g.width - size.x, g.height - size.y, size.x, size.y);
+            r.setScissorTest(true);
+            r.setClearColor(0xeeeeee);
+            r.clear();
             r.clearDepth();
             r.render(view.scene, debugCamera);
+            r.setScissorTest(false);
+            r.setClearColor(bClearColor);
             helper.visible = false;
             if (view.atmosphere) {
                 view.atmosphere.visible = true;
@@ -174,7 +181,8 @@ function Debug(view, datDebugTool, chartDivContainer) {
                 obj.traverseVisible(tileDisplay);
             }
         }
-    };
+    }
+    view.addFrameRequester(MAIN_LOOP_EVENTS.AFTER_RENDER, renderCameraDebug);
 }
 
 
