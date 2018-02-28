@@ -20,7 +20,6 @@ function customUrl(layer, url, tilematrix, row, col) {
 
 function preprocessDataLayer(layer) {
     layer.fx = layer.fx || 0.0;
-    layer.options = layer.options || {};
 
     layer.format = layer.format || 'image/png';
 

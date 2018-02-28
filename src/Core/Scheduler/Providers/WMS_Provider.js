@@ -41,8 +41,6 @@ function preprocessDataLayer(layer) {
         layer.extent = new Extent(layer.projection, layer.extent);
     }
 
-    layer.options = layer.options || {};
-
     if (!layer.options.zoom) {
         layer.options.zoom = { min: 0, max: 21 };
     }

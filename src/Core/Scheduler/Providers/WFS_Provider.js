@@ -29,7 +29,6 @@ function preprocessDataLayer(layer) {
     if (!layer.typeName) {
         throw new Error('layer.typeName is required.');
     }
-    layer.options = layer.options || {};
 
     layer.format = layer.format || 'json';
 

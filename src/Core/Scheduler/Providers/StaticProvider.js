@@ -91,7 +91,6 @@ export default {
             layer.extent = new Extent(layer.projection, ...layer.extent);
         }
 
-        layer.options = layer.options || {};
         layer.canTileTextureBeImproved = this.canTileTextureBeImproved;
         layer.url = new URL(layer.url, window.location);
         return Fetcher.json(layer.url.href).then((metadata) => {
