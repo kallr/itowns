@@ -22,11 +22,6 @@ function preprocessDataLayer(layer) {
     layer.fx = layer.fx || 0.0;
     layer.options = layer.options || {};
 
-    if (!layer.format && layer.options.mimetype) {
-        // eslint-disable-next-line no-console
-        console.warn('layer.options.mimetype is deprecated, please use layer.format');
-        layer.format = layer.options.mimetype;
-    }
     layer.format = layer.format || 'image/png';
 
     if (layer.protocol === 'wmts') {

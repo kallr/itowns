@@ -31,11 +31,6 @@ function preprocessDataLayer(layer) {
     }
     layer.options = layer.options || {};
 
-    if (!layer.format && layer.options.mimetype) {
-        // eslint-disable-next-line no-console
-        console.warn('layer.options.mimetype is deprecated, please use layer.format');
-        layer.format = layer.options.mimetype;
-    }
     layer.format = layer.format || 'json';
 
     layer.crs = layer.projection || 'EPSG:4326';

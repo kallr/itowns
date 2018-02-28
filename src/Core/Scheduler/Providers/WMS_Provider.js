@@ -47,11 +47,6 @@ function preprocessDataLayer(layer) {
         layer.options.zoom = { min: 0, max: 21 };
     }
 
-    if (!layer.format && layer.options.mimetype) {
-        // eslint-disable-next-line no-console
-        console.warn('layer.options.mimetype is deprecated, please use layer.format');
-        layer.format = layer.options.mimetype;
-    }
     layer.format = layer.format || 'image/png';
     layer.width = layer.heightMapWidth || 256;
     layer.version = layer.version || '1.3.0';

@@ -109,6 +109,13 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
         tmp.id = layer.id;
     }
 
+    // TODO remove it after next release
+    if (!layer.format && layer.options.mimetype) {
+        // eslint-disable-next-line no-console
+        console.warn('layer.options.mimetype is deprecated, please use layer.format');
+        layer.format = layer.options.mimetype;
+    }
+
     if (!layer.updateStrategy) {
         layer.updateStrategy = {
             type: STRATEGY_MIN_NETWORK_TRAFFIC,
