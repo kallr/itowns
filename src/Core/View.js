@@ -1,4 +1,4 @@
-/* global window */
+/* global window, requestAnimationFrame */
 import { Scene, EventDispatcher, Vector2, Object3D } from 'three';
 import Camera from '../Renderer/Camera';
 import MainLoop from './MainLoop';
@@ -76,6 +76,7 @@ function View(crs, viewerDiv, options = {}) {
     }, false);
 
     this._changeSources = new Set();
+    this._viewListeners = [];
 
     if (__DEBUG__) {
         this.isDebugMode = true;
@@ -133,6 +134,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
                 // because TileProvider.preprocessDataLayer function uses it.
                 layer.threejsLayer = view.mainLoop.gfxEngine.getUniqueThreejsLayer();
             }
+            layer.on = (type, listener) => view.on(type, listener, layer);
         }
         let providerPreprocessing = Promise.resolve();
         if (provider && provider.preprocessDataLayer) {
@@ -595,6 +597,110 @@ View.prototype.pickObjectsAt = function pickObjectsAt(mouseOrEvt, ...where) {
     }
 
     return results;
+};
+
+function findBatchTableParent(object) {
+    if (object.batchTable) {
+        return object.batchTable;
+    }
+    else if (object.parent) {
+        return findBatchTableParent(object.parent);
+    } else {
+        return undefined;
+    }
+}
+
+const viewerListeners = {};
+function viewerEvent(type, event, viewer) {
+    const _event = {
+        type,
+        viewCoords: _eventCoords.set(event.offsetX, event.offsetY),
+        event,
+    };
+    let normalizedCoords;
+    let intersects;
+    let batchTables;
+    Object.defineProperty(
+        _event,
+        'normalizedCoords',
+        {
+            get: () => {
+                if (!normalizedCoords) {
+                    _eventCoords.x = 2 * (_event.viewCoords.x / viewer.camera.width) - 1;
+                    _eventCoords.y = -2 * (_event.viewCoords.y / viewer.camera.height) + 1;
+                    normalizedCoords = _eventCoords;
+                }
+                return normalizedCoords;
+            },
+        });
+    Object.defineProperty(
+    _event,
+    'intersects',
+        {
+            get: () => {
+                intersects = intersects || viewer.pickObjectsAt(event, ..._event.where);
+                return intersects;
+            },
+        });
+
+    Object.defineProperty(
+    _event,
+    'batchTables',
+        {
+            get: () => {
+                batchTables = [];
+                const objects = _event.intersects;
+                for (var i = 0; i < objects.length; i++) {
+                    var interAttributes = objects[i].object.geometry.attributes;
+                    if (interAttributes) {
+                        if (interAttributes._BATCHID) {
+                            var face = objects[i].face.a;
+                            var batchID = interAttributes._BATCHID.array[face];
+                            var batchTable = findBatchTableParent(objects[i].object);
+                            var properties = {};
+                            Object.keys(batchTable).map((objectKey) => properties[objectKey] = batchTable[objectKey][batchID]);
+                            batchTables.push(properties);
+                        }
+                    }
+                }
+
+                return batchTables;
+            },
+        });
+
+    return _event;
+}
+
+View.prototype.on = function _on(type, listener, ...where) {
+    if (!viewerListeners[type]) {
+        const domElement = this.mainLoop.gfxEngine.renderer.domElement;
+        viewerListeners[type] = (event) => {
+            this.dispatchEvent(viewerEvent(type, event, this));
+        };
+        if (type == 'click') {
+            domElement.addEventListener('mousedown', viewerListeners[type]);
+        } else if (type == 'mousemove') {
+            domElement.addEventListener('mousemove', viewerListeners[type]);
+        }
+    }
+
+    const viewerListener = (event) => {
+        event.where = where;
+        listener(event);
+    };
+
+    this._viewListeners[listener] = viewerListener;
+
+    this.addEventListener(type, viewerListener);
+};
+
+View.prototype.off = function _off(type, listener) {
+    const viewerListener = this._viewListeners[listener];
+    this.removeEventListener(type, viewerListener);
+    const index = this._viewListeners.indexOf(viewerListener);
+    if (index !== -1) {
+        this._viewListeners.splice(index, 1);
+    }
 };
 
 export default View;
